@@ -1,4 +1,4 @@
-;;; sequential-command.el --- Many commands into one command
+;;; sequential-command.el --- Many commands into one command -*- lexical-binding: t; -*-
 ;; $Id: sequential-command.el,v 1.3 2010/05/04 08:55:35 rubikitch Exp $
 
 ;; Copyright (C) 2009  rubikitch
@@ -100,8 +100,8 @@
 
 ;;; Code:
 
-(defvar sequential-command-version "$Id: sequential-command.el,v 1.3 2010/05/04 08:55:35 rubikitch Exp $")
-(eval-when-compile (require 'cl))
+(defvar sequential-command-version "1.4")
+(eval-when-compile (require 'cl-lib))
 
 (defvar seq-store-count 0)
 (defvar seq-start-position nil
@@ -112,18 +112,21 @@
   "Returns number of times `this-command' was executed.
 It also updates `seq-start-position'."
   (if (eq last-command this-command)
-      (incf seq-store-count)
+      (cl-incf seq-store-count)
     (setq seq-start-position  (cons (point) (window-start))
           seq-store-count     0)))
 
 (defmacro define-sequential-command (name &rest commands)
-  "Define a command whose behavior is changed by sequence of calls of the same command."
+  "Define a command whose behavior is changed by sequence of calls
+of the same command."
   (let ((cmdary (apply 'vector commands)))
     `(defun ,name ()
-       ,(concat "Sequential command of "
+       ,(concat "Sequential command of
+"
                 (mapconcat
                  (lambda (cmd) (format "`%s'" (symbol-name cmd)))
-                 commands " and ")
+                 commands "
+")
                 ".")
        (interactive)
        (call-interactively
@@ -131,14 +134,15 @@ It also updates `seq-start-position'."
 ;; (macroexpand '(define-sequential-command foo beginning-of-line beginning-of-buffer))
 
 (defun seq-return ()
-  "Return to the position when sequence of calls of the same command was started."
+  "Return to the position when sequence of calls of the same
+command was started."
   (interactive)
   (goto-char (car seq-start-position))
   (set-window-start (selected-window) (cdr seq-start-position)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;  demonstration                                                     ;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;  demonstration                                               ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun seq-demo ()
   (interactive)
   (global-set-key "\C-x\C-z" 'seq-count-test)
@@ -161,8 +165,10 @@ When I executed M-x ...
 
 How to send a bug report:
   1) Be sure to use the LATEST version of sequential-command.el.
-  2) Enable debugger. M-x toggle-debug-on-error or (setq debug-on-error t)
-  3) Use Lisp version instead of compiled one: (load \"sequential-command.el\")
+  2) Enable debugger. M-x toggle-debug-on-error
+ or (setq debug-on-error t)
+  3) Use Lisp version instead of compiled one:
+(load \"sequential-command.el\")
   4) If you got an error, please paste *Backtrace* buffer.
   5) Type C-c C-c to send.
 # If you are a Japanese, please write in Japanese:-)")

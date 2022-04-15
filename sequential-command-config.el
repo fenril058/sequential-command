@@ -1,4 +1,4 @@
-;;; sequential-command-config.el --- Examples of sequential-command.el
+;;; sequential-command-config.el --- Examples of sequential-command.el -*- lexical-binding: t; -*-
 ;; $Id: sequential-command-config.el,v 1.3 2009/03/22 09:09:58 rubikitch Exp $
 
 ;; Copyright (C) 2009  rubikitch
@@ -53,7 +53,7 @@
 
 ;;; Code:
 
-(defvar sequential-command-config-version "$Id: sequential-command-config.el,v 1.3 2009/03/22 09:09:58 rubikitch Exp $")
+(defvar sequential-command-config-version "1.4")
 (require 'sequential-command)
 
 (define-sequential-command seq-home
@@ -86,6 +86,7 @@ If you use `org-mode', rebind C-a and C-e."
   (global-set-key "\M-u" 'seq-upcase-backward-word)
   (global-set-key "\M-c" 'seq-capitalize-backward-word)
   (global-set-key "\M-l" 'seq-downcase-backward-word)
+  (declare 'org-mode-map)
   (when (require 'org nil t)
     (define-key org-mode-map "\C-a" 'org-seq-home)
     (define-key org-mode-map "\C-e" 'org-seq-end)))
