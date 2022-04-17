@@ -55,6 +55,7 @@
 
 (defvar sequential-command-config-version "1.4")
 (require 'sequential-command)
+(declare 'org-mode-map)
 
 (define-sequential-command seq-home
   beginning-of-line beginning-of-buffer seq-return)
@@ -86,7 +87,6 @@ If you use `org-mode', rebind C-a and C-e."
   (global-set-key "\M-u" 'seq-upcase-backward-word)
   (global-set-key "\M-c" 'seq-capitalize-backward-word)
   (global-set-key "\M-l" 'seq-downcase-backward-word)
-  (declare 'org-mode-map)
   (when (require 'org nil t)
     (define-key org-mode-map "\C-a" 'org-seq-home)
     (define-key org-mode-map "\C-e" 'org-seq-end)))
