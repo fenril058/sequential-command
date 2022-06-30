@@ -61,7 +61,7 @@
 
 (defvar sequential-command-config-version "1.3.1")
 (require 'sequential-command)
-(eval-when-compile (require 'org))
+(require 'org)
 
 (define-sequential-command seq-command-home
   beginning-of-line beginning-of-buffer seq-command-return)
