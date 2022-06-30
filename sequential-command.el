@@ -113,7 +113,7 @@
 (defvar seq-command-store-count 0)
 (defvar seq-command-start-position nil
   "Store `point' and `window-start' when sequantial-command was started.
-This variable is updated by `seq-command-count'")
+This variable is updated by `seq-command-count'.")
 
 (defun seq-command-count* ()
   "Return number of times `this-command' was executed.
@@ -166,7 +166,7 @@ in turn by every call."
 
 ;;;; Bug report
 (defvar seq-command-maintainer-mail-address
-  (concat "fenril" ".nh@g" "mail.com"))
+  (concat "rubiki" "tch@ru" "by-lang.org"))
 (defvar seq-command-bug-report-salutation
   "Describe bug below, using a precise recipe.
 
