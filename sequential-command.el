@@ -1,11 +1,14 @@
-;;; sequential-command.el --- Many commands into one command -*- lexical-binding: t; -*-
+;;; seq-command.el --- Many commands into one command -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009  rubikitch
 
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
+;; Maintainer: ril <fenril.nh@gmail.com>
 ;; Keywords: convenience, lisp
-;; URL: https://github.com/rubikitch/sequential-command
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Version: 20220707.00
+;; Version: 1.4.0
+;; URL: https://github.com/fenril058/seq-command
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,38 +32,33 @@
 ;; other behavior in this situation is safe.
 ;;
 ;; For example, defining `my-end': if point is at the end of line, go
-;; to the end of buffer, otherwise go to the end of line.  Just evaluate it!
+;; to the end of buffer, otherwise go to the end of line.  Just
+;; evaluate it!
 ;;
-;; (define-sequential-command my-end  end-of-line end-of-buffer)
-;; (global-set-key "\C-e" 'my-end)
+;; (define-seq-command my-end end-of-line end-of-buffer)
+;; (global-set-key (kbd "C-e") 'my-end)
 ;;
 ;; Consequently, pressing C-e C-e is `end-of-buffer'!
 ;;
-;; `define-sequential-command' is a macro that defines a command whose
+;; `define-seq-command' is a macro that defines a command whose
 ;; behavior is changed by sequence of calls of the same command.
 ;;
-;; `seq-command-return' is a command to return to the position when sequence
-;; of calls of the same command was started.
+;; `seq-command-return' is a command to return to the position when
+;; sequence of calls of the same command was started.
 ;;
-;; See sequential-command-config.el if you want examples.
-;;
-;; http://www.emacswiki.org/cgi-bin/wiki/download/sequential-command-config.el
+;; See `seq-command-config.el' if you want examples.
 
 ;;; Commands:
 ;;
 ;; Below are complete command list:
 ;;
-;;  `seq-command-return'
-;;    Return to the position when sequence of calls of the same command was started.
+;; `seq-command-return' returns to the position when sequence of calls
+;; of the same command was started.
 ;;
 ;;; Customizable Options:
 ;;
 ;; Below are customizable option list:
 ;;
-
-;;; Demonstration:
-
-;; Execute M-x seq-command-demo. And press C-x C-z many times.
 
 ;;; Bug Report:
 ;;
@@ -72,9 +70,9 @@
 ;;       (setq smtpmail-smtp-server "your.smtp.server.jp")
 ;;       (setq mail-user-agent 'message-user-agent)
 ;;       (setq message-send-mail-function 'message-smtpmail-send-it)
-;;  1) Be sure to use the LATEST version of sequential-command.el.
+;;  1) Be sure to use the LATEST version of seq-command.el.
 ;;  2) Enable debugger. M-x toggle-debug-on-error or (setq debug-on-error t)
-;;  3) Use Lisp version instead of compiled one: (load "sequential-command.el")
+;;  3) Use Lisp version instead of compiled one: (load "seq-command.el")
 ;;  4) Do it!
 ;;  5) If you got an error, please do not close *Backtrace* buffer.
 ;;  6) M-x seq-command-send-bug-report and M-x insert-buffer *Backtrace*
@@ -84,7 +82,10 @@
 
 ;;; History:
 
-;; $Log: sequential-command.el,v $
+;; Revision 1.4.0 2022/07/08
+;; * Change the name from sequential-command.el to seq-command.el.
+;; * Move demo code to seq-command-demo.el
+;;
 ;; Revision 1.3.1 2022/06/30 ril
 ;; * Change some doc strings.
 ;; * Change some comments.
@@ -107,15 +108,19 @@
 
 ;;; Code:
 
-(defvar sequential-command-version "1.3.1")
 (eval-when-compile (require 'cl-lib))
 
+(defgroup seq-command nil
+  "Many commands into one command."
+  :group 'convenience)
+
+(defconst seq-command-version "1.4.0")
 (defvar seq-command-store-count 0)
 (defvar seq-command-start-position nil
   "Store `point' and `window-start' when sequantial-command was started.
 This variable is updated by `seq-command-count'.")
 
-(defun seq-command-count* ()
+(defun seq-command-count ()
   "Return number of times `this-command' was executed.
 It also updates `seq-command-start-position'."
   (if (eq last-command this-command)
@@ -123,9 +128,9 @@ It also updates `seq-command-start-position'."
     (setq seq-command-start-position (cons (point) (window-start))
           seq-command-store-count 0)))
 
-(defmacro define-sequential-command (name &rest commands)
-  "Define a sequantial-command the name is `NAME'.
-When `NAME' command called, it executs a command in `COMMANDS'
+(defmacro define-seq-command (name &rest commands)
+  "Define a sequantial-command the name is NAME.
+When NAME command called, it executs a command in COMMANDS
 in turn by every call."
   (let ((cmdary (apply 'vector commands)))
     `(defun ,name ()
@@ -138,61 +143,43 @@ in turn by every call."
                 ".")
        (interactive)
        (call-interactively
-        (aref ,cmdary (mod (seq-command-count*) ,(length cmdary)))))))
-;; (macroexpand '(define-sequential-command foo beginning-of-line beginning-of-buffer))
+        (aref ,cmdary (mod (seq-command-count) ,(length cmdary)))))))
+;; (macroexpand '(define-seq-command foo beginning-of-line beginning-of-buffer))
 
 (defun seq-command-return ()
-  "Return the position when a sequential-command was called."
+  "Return the position when a seq-command was called."
   (interactive)
   (goto-char (car seq-command-start-position))
   (set-window-start (selected-window) (cdr seq-command-start-position)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;  demonstration                                               ;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun seq-command-demo ()
-  "Demo function of seq-command."
-  (interactive)
-  (global-set-key "\C-x\C-z" 'seq-command-count-test)
-  (message "Press C-x C-z repeatedly"))
-
-(defun seq-command-count-test ()
-  "Test function of seq-command-count."
-  (interactive)
-  (message "seq-command-count: %d" (seq-command-count*)))
-
-(define-sequential-command seq-command-home
-  beginning-of-line back-to-indentation beginning-of-buffer seq-command-return)
-
 ;;;; Bug report
 (defvar seq-command-maintainer-mail-address
-  (concat "rubiki" "tch@ru" "by-lang.org"))
+  (concat "fen" "ril.nh@gm" "ail.com"))
 (defvar seq-command-bug-report-salutation
   "Describe bug below, using a precise recipe.
 
 When I executed M-x ...
 
 How to send a bug report:
-  1) Be sure to use the LATEST version of sequential-command.el.
+  1) Be sure to use the LATEST version of seq-command.el.
   2) Enable debugger. M-x toggle-debug-on-error
  or (setq debug-on-error t)
   3) Use Lisp version instead of compiled one:
-(load \"sequential-command.el\")
+(load \"seq-command.el\")
   4) If you got an error, please paste *Backtrace* buffer.
   5) Type C-c C-c to send.
 # If you are a Japanese, please write in Japanese:-)")
 (defun seq-command-send-bug-report ()
-  "Bug report function."
+  "Bug report function for `seq-command.el'."
   (interactive)
   (reporter-submit-bug-report
    seq-command-maintainer-mail-address
-   "sequential-command.el"
+   "seq-command.el"
    (apropos-internal "^seq-command" 'boundp)
    nil nil
    seq-command-bug-report-salutation))
 
-(provide 'sequential-command)
-
+(provide 'seq-command)
 ;; How to save (DO NOT REMOVE!!)
-;; (emacswiki-post "sequential-command.el")
-;;; sequential-command.el ends here
+;; (emacswiki-post "seq-command.el")
+;;; seq-command.el ends here
