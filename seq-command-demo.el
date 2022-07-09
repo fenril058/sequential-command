@@ -5,6 +5,7 @@
 ;; Author: ril <fenril.nh@gmail.com>
 ;; Keywords: convenience, lisp
 ;; Version: 0.0.1
+;; URL: https://github.com/fenril058/sequential-command
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
