@@ -5,8 +5,8 @@
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Maintainer: ril <fenril.nh@gmail.com>
 ;; Keywords: convenience, lisp
-;; Version: 1.4.0
-;; URL: https://github.com/fenril058/seq-command
+;; Version: 1.5.0
+;; URL: https://github.com/fenril058/sequential-command
 ;; Package-Requires: ((cl-lib "0.5"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -34,12 +34,12 @@
 ;; to the end of buffer, otherwise go to the end of line.  Just
 ;; evaluate it!
 ;;
-;; (define-seq-command my-end end-of-line end-of-buffer)
+;; (seq-command-define-command my-end end-of-line end-of-buffer)
 ;; (global-set-key (kbd "C-e") 'my-end)
 ;;
 ;; Consequently, pressing C-e C-e is `end-of-buffer'!
 ;;
-;; `define-seq-command' is a macro that defines a command whose
+;; `seq-command-define-command' is a macro that defines a command whose
 ;; behavior is changed by sequence of calls of the same command.
 ;;
 ;; `seq-command-return' is a command to return to the position when
@@ -81,6 +81,14 @@
 
 ;;; History:
 
+;; Revision 1.5.0 2022/07/09
+;; * Add files `sequential-command.el' and
+;; `sequential-command-config.el', and define aliases in them
+;;  to maintain backward compatibility.
+;; * New macfo: `define-seq-cursor-command'
+;;   the code is mainly from
+;;   https://github.com/HKey/sequential-command.
+;;
 ;; Revision 1.4.0 2022/07/08
 ;; * Change the name from sequential-command.el to seq-command.el.
 ;; * Move demo code to seq-command-demo.el
@@ -109,9 +117,15 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defconst seq-command-version "1.4.0")
+(defconst seq-command-version "1.5.0")
+
+(defgroup seq-command nil
+  "Many commands into one command."
+  :group 'convenience)
 
 (defvar seq-command-store-count 0)
+
+(defvar seq-command-skip-count 0)
 
 (defvar seq-command-start-position nil
   "Store `point' and `window-start' when sequantial-command was started.
@@ -139,14 +153,46 @@ in turn by every call."
 ")
                 ".")
        (interactive)
-       (call-interactively
-        (aref ,cmdary (mod (seq-command-count) ,(length cmdary)))))))
+       (when (> ,(length cmdary) seq-command-skip-count)
+         (let ((seq-command-skip-count seq-command-skip-count))
+           (call-interactively
+            (aref ,cmdary (mod (seq-command-count) ,(length cmdary)))))))))
 
 (defun seq-command-return ()
   "Return the position when a seq-command was called."
   (interactive)
   (goto-char (car seq-command-start-position))
   (set-window-start (selected-window) (cdr seq-command-start-position)))
+
+(defun seq-command-next ()
+  (interactive)
+  (setq last-command this-command)
+  (cl-incf seq-command-skip-count)
+  (call-interactively this-command))
+
+(defmacro define-seq-cursor-command (source-command &optional comp-form)
+  "Define moving corsor command for seq-command.
+This macro define the function of whith the name is
+seq-command-SOURCE-COMMAND-.  It executs SOURCE-COMMAND when
+called, and evaluate COMP-FORM.  If COMP-FORM retunrs non-nil value,
+`seq-command-next' is called after that.  By default COMP-FORM is
+(= seq-command-old-point seq-command-new-point), which retunrs t
+if the cursor position does not move after executing
+SOURCE-COMMAND.  In COMP-FORM, `seq-command-old-point'
+interpreted as the cursor position before SOURCE-COMMAND executed
+and `seq-command-new-point' interpreted as the cursorposition
+after SOURCE-COMMAND executed."
+  (declare (indent 1))
+  (setq comp-form (or comp-form
+                 '(= seq-command-old-point seq-command-new-point)))
+  `(defun ,(intern (concat "seq-command-" (symbol-name source-command))) ()
+     (interactive)
+     (let ((seq-command-old-point (point)))
+       (call-interactively ',source-command)
+       (let ((seq-command-new-point (point)))
+         (when ,comp-form
+           (goto-char seq-command-old-point)
+           (seq-command-next))))))
 
 ;;;; Bug report
 (defvar seq-command-maintainer-mail-address

@@ -3,9 +3,10 @@
 ;; Copyright (C) 2009  rubikitch
 
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
+;; Maintainer: ril <fenril.nh@gmail.com>
 ;; Keywords: extensions, convenience
-;; Version: 1.4.0
-;; URL: https://github.com/rubikitch/seq-command
+;; Version: 1.5.0
+;; URL: https://github.com/fenril058/sequential-command
 ;; Package-Requires: ((emacs "24.4"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -41,6 +42,10 @@
 
 ;;; History:
 
+;; Revision 1.5.0 2022/07/09
+;; * Define smart seq-command using `seq-command-define-cursor-command'
+;;   and change using them in `seq-command-home', `seq-command-end'.
+;;
 ;; Revision 1.4.0 2022/07/08
 ;; * Change the name from sequential-command-config.el to
 ;;   seq-command-config.el.
@@ -52,7 +57,7 @@
 ;; * Require Emacs 25.1 or more and `org.el'.
 ;;
 ;; Revision 1.3  2009/03/22 09:09:58  rubikitch
-;; New command: `seq-command-setup-keys'
+;; New command: `sequential-command-setup-keys'
 ;;
 ;; Revision 1.2  2009/02/17 12:56:26  rubikitch
 ;; fixed typo
@@ -64,12 +69,38 @@
 ;;; Code:
 
 (require 'seq-command)
-(defconst seq-command-config-version "1.4.0")
+(defconst seq-command-config-version "1.5.0")
+
+(defcustom seq-command-home-prefer-back-to-indentation t
+  "If t `seq-command-setup-keys' bind `C-a' to `seq-command-home-another'.
+It calls `back-to-indentation' firt rather than `beginning-of-line' which
+is originaly bind to `C-a'."
+  :type 'boolean
+  :group 'seq-command
+  )
+
+(seq-command-define-cursor-command back-to-indentation
+  (<= seq-command-old-point seq-command-new-point))
+(define-seq-cursor-command beginning-of-line)
+(define-seq-cursor-command beginning-of-buffer)
+(define-seq-cursor-command end-of-line)
+(define-seq-cursor-command end-of-buffer)
 
 (define-seq-command seq-command-home
-  back-to-indentation move-beginning-of-line beginning-of-buffer seq-command-return)
+  seq-command-beginning-of-line
+  beginning-of-buffer
+  seq-command-return)
+
+(define-seq-command seq-command-home-another
+  seq-command-back-to-indentation
+  seq-command-beginning-of-line
+  beginning-of-buffer
+  seq-command-return)
+
 (define-seq-command seq-command-end
-  end-of-line end-of-buffer seq-command-return)
+  seq-command-end-of-line
+  end-of-buffer
+  seq-command-return)
 
 (defun seq-command-upcase-backward-word ()
   "Upcase the word just before the cursor."
@@ -90,7 +121,9 @@
   "Rebind `C-a', `C-e', `M-u', `M-c', and `M-l' to seq-command-* commands.
 If you use `org-mode', rebind `C-a' and `C-e'."
   (interactive)
-  (global-set-key "\C-a" 'seq-command-home)
+  (if seq-command-home-prefer-back-to-indentation
+      (global-set-key "\C-a" 'seq-command-home-another)
+    (global-set-key "\C-a" 'seq-command-home))
   (global-set-key "\C-e" 'seq-command-end)
   (global-set-key "\M-u" 'seq-command-upcase-backward-word)
   (global-set-key "\M-c" 'seq-command-capitalize-backward-word)
