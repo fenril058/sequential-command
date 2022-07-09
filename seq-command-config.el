@@ -4,8 +4,9 @@
 
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Keywords: extensions, convenience
+;; Version: 1.4.0
 ;; URL: https://github.com/rubikitch/seq-command
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "24.4"))
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -66,24 +67,24 @@
 (defconst seq-command-config-version "1.4.0")
 
 (define-seq-command seq-command-home
-  beginning-of-line beginning-of-buffer seq-command-return)
+  back-to-indentation move-beginning-of-line beginning-of-buffer seq-command-return)
 (define-seq-command seq-command-end
   end-of-line end-of-buffer seq-command-return)
 
 (defun seq-command-upcase-backward-word ()
   "Upcase the word just before the cursor."
   (interactive)
-  (upcase-word (- (1+ (seq-command-count*)))))
+  (upcase-word (- (1+ (seq-command-count)))))
 
 (defun seq-command-capitalize-backward-word ()
   "Capitalize the word just before the cursor."
   (interactive)
-  (capitalize-word (- (1+ (seq-command-count*)))))
+  (capitalize-word (- (1+ (seq-command-count)))))
 
 (defun seq-command-downcase-backward-word ()
   "Downcase the word just before the cursor."
   (interactive)
-  (downcase-word (- (1+ (seq-command-count*)))))
+  (downcase-word (- (1+ (seq-command-count)))))
 
 (defun seq-command-setup-keys ()
   "Rebind `C-a', `C-e', `M-u', `M-c', and `M-l' to seq-command-* commands.
@@ -101,10 +102,7 @@ If you use `org-mode', rebind `C-a' and `C-e'."
       org-end-of-line end-of-buffer seq-command-return)
     (define-key org-mode-map "\C-a" 'org-seq-command-home)
     (define-key org-mode-map "\C-e" 'org-seq-command-end)
-    )
-  )
+    ))
 
 (provide 'seq-command-config)
-;; How to save (DO NOT REMOVE!!)
-;; (emacswiki-post "seq-command-config.el")
 ;;; seq-command-config.el ends here

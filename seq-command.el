@@ -5,10 +5,9 @@
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Maintainer: ril <fenril.nh@gmail.com>
 ;; Keywords: convenience, lisp
-;; Package-Version: 20220707.00
 ;; Version: 1.4.0
 ;; URL: https://github.com/fenril058/seq-command
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Package-Requires: ((cl-lib "0.5"))
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -110,12 +109,10 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defgroup seq-command nil
-  "Many commands into one command."
-  :group 'convenience)
-
 (defconst seq-command-version "1.4.0")
+
 (defvar seq-command-store-count 0)
+
 (defvar seq-command-start-position nil
   "Store `point' and `window-start' when sequantial-command was started.
 This variable is updated by `seq-command-count'.")
@@ -144,7 +141,6 @@ in turn by every call."
        (interactive)
        (call-interactively
         (aref ,cmdary (mod (seq-command-count) ,(length cmdary)))))))
-;; (macroexpand '(define-seq-command foo beginning-of-line beginning-of-buffer))
 
 (defun seq-command-return ()
   "Return the position when a seq-command was called."
@@ -180,6 +176,4 @@ How to send a bug report:
    seq-command-bug-report-salutation))
 
 (provide 'seq-command)
-;; How to save (DO NOT REMOVE!!)
-;; (emacswiki-post "seq-command.el")
 ;;; seq-command.el ends here
