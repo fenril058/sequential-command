@@ -79,12 +79,12 @@ is originaly bind to `C-a'."
   :group 'seq-command
   )
 
-(seq-command-define-cursor-command back-to-indentation
+(define-seq-command-for-cursor back-to-indentation
   (<= seq-command-old-point seq-command-new-point))
-(define-seq-cursor-command beginning-of-line)
-(define-seq-cursor-command beginning-of-buffer)
-(define-seq-cursor-command end-of-line)
-(define-seq-cursor-command end-of-buffer)
+(define-seq-command-for-cursor beginning-of-line)
+(define-seq-command-for-cursor beginning-of-buffer)
+(define-seq-command-for-cursor end-of-line)
+(define-seq-command-for-cursor end-of-buffer)
 
 (define-seq-command seq-command-home
   seq-command-beginning-of-line
