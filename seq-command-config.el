@@ -7,7 +7,7 @@
 ;; Keywords: extensions, convenience
 ;; Version: 1.5.0
 ;; URL: https://github.com/fenril058/sequential-command
-;; Package-Requires: ((emacs "24.4"))
+;; Package-Requires:
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -42,9 +42,16 @@
 
 ;;; History:
 
-;; Revision 1.5.0 2022/07/09
+;; Revision 1.5.0 2022/07/11
 ;; * Define smart seq-command using `define-seq-command-for-cursor'
 ;;   and change using them in `seq-command-home', `seq-command-end'.
+;; * Rewrite `reqruire' to `eval-after-load' and `progn' for`org.el'
+;;   to prevent from slowing down of the initial process of Emacs.
+;; * Now there seems no need to require Emacs 25.1 or more, delete the
+;;   requirement.
+;; * New variable: `seq-command-home-prefer-back-to-indentation'
+;;   this change the behavior of the `seq-commnad-setup-keys'.
+;;   Read the doc strings of it to see the details.
 ;;
 ;; Revision 1.4.0 2022/07/08
 ;; * Change the name from sequential-command-config.el to
@@ -71,7 +78,7 @@
 (require 'seq-command)
 (defconst seq-command-config-version "1.5.0")
 
-(defcustom seq-command-home-prefer-back-to-indentation t
+(defcustom seq-command-home-prefer-back-to-indentation nil
   "If non-nil `seq-command-setup-keys' bind `C-a' to `seq-command-home-another'.
 It calls `back-to-indentation' firt rather than
 `beginning-of-line', which is originaly bind to `C-a'."
@@ -128,13 +135,14 @@ If you use `org-mode', rebind `C-a' and `C-e'."
   (global-set-key "\M-u" 'seq-command-upcase-backward-word)
   (global-set-key "\M-c" 'seq-command-capitalize-backward-word)
   (global-set-key "\M-l" 'seq-command-downcase-backward-word)
-  (with-eval-after-load 'org
-    (define-seq-command org-seq-command-home
-      org-beginning-of-line beginning-of-buffer seq-command-return)
-    (define-seq-command org-seq-command-end
-      org-end-of-line end-of-buffer seq-command-return)
-    (define-key org-mode-map "\C-a" 'org-seq-command-home)
-    (define-key org-mode-map "\C-e" 'org-seq-command-end)
+  (eval-after-load 'org
+    (progn
+      (define-seq-command org-seq-command-home
+        org-beginning-of-line beginning-of-buffer seq-command-return)
+      (define-seq-command org-seq-command-end
+        org-end-of-line end-of-buffer seq-command-return)
+      (define-key org-mode-map "\C-a" 'org-seq-command-home)
+      (define-key org-mode-map "\C-e" 'org-seq-command-end))
     ))
 
 (provide 'seq-command-config)
