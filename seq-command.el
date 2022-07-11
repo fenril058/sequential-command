@@ -85,7 +85,7 @@
 ;; * Add files `sequential-command.el' and
 ;; `sequential-command-config.el', and define aliases in them
 ;;  to maintain backward compatibility.
-;; * New macfo: `define-seq-cursor-command'
+;; * New macfo: `define-seq-command-for-cursor'
 ;;   the code is mainly from
 ;;   https://github.com/HKey/sequential-command.
 ;;
@@ -165,12 +165,13 @@ in turn by every call."
   (set-window-start (selected-window) (cdr seq-command-start-position)))
 
 (defun seq-command-next ()
-  (interactive)
+  "Skip a command in a sequence and execut next command."
+  ;; (interactive)
   (setq last-command this-command)
   (cl-incf seq-command-skip-count)
   (call-interactively this-command))
 
-(defmacro define-seq-cursor-command (source-command &optional comp-form)
+(defmacro define-seq-command-for-cursor (source-command &optional comp-form)
   "Define moving corsor command for seq-command.
 This macro define the function of whith the name is
 seq-command-SOURCE-COMMAND-.  It executs SOURCE-COMMAND when
@@ -186,7 +187,7 @@ after SOURCE-COMMAND executed."
   (setq comp-form (or comp-form
                  '(= seq-command-old-point seq-command-new-point)))
   `(defun ,(intern (concat "seq-command-" (symbol-name source-command))) ()
-     (interactive)
+     ;; (interactive)
      (let ((seq-command-old-point (point)))
        (call-interactively ',source-command)
        (let ((seq-command-new-point (point)))
