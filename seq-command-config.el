@@ -43,7 +43,7 @@
 ;;; History:
 
 ;; Revision 1.5.0 2022/07/09
-;; * Define smart seq-command using `seq-command-define-cursor-command'
+;; * Define smart seq-command using `define-seq-command-for-cursor'
 ;;   and change using them in `seq-command-home', `seq-command-end'.
 ;;
 ;; Revision 1.4.0 2022/07/08
@@ -72,9 +72,9 @@
 (defconst seq-command-config-version "1.5.0")
 
 (defcustom seq-command-home-prefer-back-to-indentation t
-  "If t `seq-command-setup-keys' bind `C-a' to `seq-command-home-another'.
-It calls `back-to-indentation' firt rather than `beginning-of-line' which
-is originaly bind to `C-a'."
+  "If non-nil `seq-command-setup-keys' bind `C-a' to `seq-command-home-another'.
+It calls `back-to-indentation' firt rather than
+`beginning-of-line', which is originaly bind to `C-a'."
   :type 'boolean
   :group 'seq-command
   )
