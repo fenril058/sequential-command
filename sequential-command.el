@@ -35,4 +35,4 @@
 (defalias 'define-sequenial-command 'define-seq-command)
 
 (provide 'sequential-command)
-;;; sequential-commands.el ends here
+;;; sequential-command.el ends here

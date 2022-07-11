@@ -166,7 +166,6 @@ in turn by every call."
 
 (defun seq-command-next ()
   "Skip a command in a sequence and execut next command."
-  ;; (interactive)
   (setq last-command this-command)
   (cl-incf seq-command-skip-count)
   (call-interactively this-command))
@@ -177,7 +176,7 @@ This macro define the function of whith the name is
 seq-command-SOURCE-COMMAND-.  It executs SOURCE-COMMAND when
 called, and evaluate COMP-FORM.  If COMP-FORM retunrs non-nil value,
 `seq-command-next' is called after that.  By default COMP-FORM is
-(= seq-command-old-point seq-command-new-point), which retunrs t
+\(= seq-command-old-point seq-command-new-point\), which retunrs t
 if the cursor position does not move after executing
 SOURCE-COMMAND.  In COMP-FORM, `seq-command-old-point'
 interpreted as the cursor position before SOURCE-COMMAND executed
@@ -187,7 +186,7 @@ after SOURCE-COMMAND executed."
   (setq comp-form (or comp-form
                  '(= seq-command-old-point seq-command-new-point)))
   `(defun ,(intern (concat "seq-command-" (symbol-name source-command))) ()
-     ;; (interactive)
+     (interactive)
      (let ((seq-command-old-point (point)))
        (call-interactively ',source-command)
        (let ((seq-command-new-point (point)))

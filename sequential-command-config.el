@@ -34,5 +34,5 @@
 
 (defalias 'sequential-command-setup-keys 'seq-command-setup-keys)
 
-(provide 'sequential-command)
-;;; sequential-commands.el ends here
+(provide 'sequential-command-config)
+;;; sequential-command-config.el ends here
