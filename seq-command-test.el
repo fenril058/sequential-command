@@ -22,96 +22,132 @@
 
 ;;; Commentary:
 
-;;
+;; Test code for `seq-command.el'
 
 ;;; Code:
 
 (require 'seq-command)
 (require 'seq-command-config)
+(require 'seq-command-demo)
 (require 'cort)
 
-(defun seq-command-test (string command)
-  "Test function for `seq-command.el'."
-  (with-temp-buffer
-    (insert string)
-    (funcall command)
-    (buffer-string)))
+(defun seq-command-test-insert (string)
+  (interactive)
+  (insert string))
 
+
+;; The macro `with-temp-buffer' does not work with key input,
+;; because after key input the current buffer becomes *scratch*.
+;; Therefore, *scratch* buffer is now used.
+(defun seq-command-test-string-operations (string command)
+  "Test function for `seq-command.el'.
+Delete the current buffer, insert STRING and execute COMMAND,
+and the return the whole string of the buffer."
+  (delete-region (point-min) (point-max))
+  (insert string)
+  (command-execute command)
+  (buffer-string))
+
+(defun seq-command-test-cursor-operations (string command)
+  "Test function for `seq-command.el'.
+Delete the current buffer, insert STRING and execute COMMAND,
+and the return the cursor position."
+  (delete-region (point-min) (point-max))
+  (insert string)
+  (command-execute command)
+  (point))
+
+;; (message (format "%s" seq-command-start-position))
 ;; (message (format "%s" seq-command-store-count))
+;; (message (format "%s" seq-command-skip-count))
 
-;; (seq-command-setup-keys)
+;;; Creat the command of pushing keys.
+;; `seq-demo.el'
+(seq-command-demo)
+(fset 'test-CxCz "\^x\^z")
+(fset 'test-CxCzCxCz "\^x\^z\^x\^z")
+(fset 'test-CxCzCxCzCxCz "\^x\^z\^x\^z\^x\^z")
+;; `seq-command-config.el'
+(setq seq-command-home-prefer-back-to-indentation nil) ; set key bindings of original `sequentail-command-config.el'
+(seq-command-setup-keys)
+(fset 'test-Ca "\^a")
+(fset 'test-CaCa "\^a\^a")
+(fset 'test-CaCaCa "\^a\^a\^a")
+(fset 'test-Ce "\^e")
+(fset 'test-CeCe "\^e\^e")
+(fset 'test-CeCe "\^e\^e\^e")
+(fset 'test-Mc "\^[c")
+(fset 'test-McMc "\^[c\^[c")
+(fset 'test-McMcMc "\^[c\^[c\^[c")
+(fset 'test-Mu "\^[u")
+(fset 'test-MuMu "\^[u\^[u")
+(fset 'test-MuMuMu "\^[u\^[u\^[u")
 
-(fset 'test-M-c "\^[c")
-(fset 'test-M-l "\^[l")
-(fset 'test-M-u "\^[u")
+;;; test
+(cort-deftest-generate seq-command-count-test :=
+  '(((with-temp-buffer
+       (command-execute 'test-CxCz)
+       seq-command-store-count)
+     0)
+    ((with-temp-buffer
+       (command-execute 'test-CxCzCxCz)
+       seq-command-store-count)
+     1)
+    ((with-temp-buffer
+       (command-execute 'test-CxCzCxCzCxCz)
+       seq-command-store-count)
+     2)
+    ))
 
 (cort-deftest-generate seq-command-config-test/string :string=
-  '(((with-temp-buffer
-       (insert "aaa-bbb-ccc-ddd")
-       (message (format "%s" seq-command-start-position))
-       (message (format "%s" seq-command-store-count))
-       (command-execute 'seq-command-capitalize-backward-word)
-       (message (format "%s" seq-command-start-position))
-       (message (format "%s" seq-command-store-count))
-       (message (format "%s" seq-command-skip-count))
-       (buffer-string)
-       )
+  '(
+    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-Mc)
      "aaa-bbb-ccc-Ddd")
-    ;; ((with-temp-buffer
-    ;;    (insert "aaa-bbb-ccc-ddd")
-    ;;    (seq-command-capitalize-backward-word)
-    ;;    (seq-command-capitalize-backward-word)
-    ;;    (buffer-string)
-    ;;    )
-    ;;  "aaa-bbb-Ccc-Ddd")
-    ;; ((with-temp-buffer
-    ;;    (insert "aaa-bbb-ccc-ddd")
-    ;;    (seq-command-capitalize-backward-word)
-    ;;    (seq-command-capitalize-backward-word)
-    ;;    (seq-command-capitalize-backward-word)
-    ;;    (buffer-string)
-    ;;    )
-    ;;  "aaa-Bbb-Ccc-Ddd")
+    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-McMc)
+     "aaa-bbb-Ccc-Ddd")
+    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-McMcMc)
+     "aaa-Bbb-Ccc-Ddd")
+    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-Mu)
+     "aaa-bbb-ccc-DDD")
+    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-MuMu)
+     "aaa-bbb-CCC-DDD")
+    ((seq-command-test-string-operations "aa-bb" 'test-MuMuMu)
+     "AA-BB")
+    ))
+
+
+(cort-deftest-generate seq-command-test/position :=
+  '(((progn
+       (delete-region (point-min) (point-max))
+       (insert "aaa
+bbb")
+       (point)
+       )
+     8)
+    ((seq-command-test-cursor-operations "aaa
+bbb" 'test-Ca)
+     5)
+    ((seq-command-test-cursor-operations "aaa
+bbb" 'test-CaCa)
+     1)
+    ((seq-command-test-cursor-operations "aaa
+bbb" 'test-CaCaCa)
+     8)
+    ((progn
+       (delete-region (point-min) (point-max))
+       (insert "aaa
+bbb")
+       (backward-char 3)
+       (command-execute 'test-Ca)
+       (point)
+       )
+     1)
     )
   )
 
-;; (cort-deftest-generate seq-command-config-test/upcase :string=
-;;   '(((with-temp-buffer
-;;        (insert "aaa-bbb-ccc")
-;;        (buffer-string)
-;;        )
-;;      "aaa-bbb-ccc")
-;;     ((with-temp-buffer
-;;        (insert "aaa-bbb-ccc")
-;;        (seq-command-upcase-backward-word)
-;;        (buffer-string)
-;;        )
-;;      "aaa-bbb-CCC")
-;;     ((with-temp-buffer
-;;        (insert "aaa-bbb-ccc")
-;;        (seq-command-upcase-backward-word)
-;;        (seq-command-upcase-backward-word)
-;;        (buffer-string)
-;;        )
-;;      "aaa-BBB-CCC")
-;;     ((with-temp-buffer
-;;        (insert "aaa-bbb-ccc")
-;;        (seq-command-upcase-backward-word)
-;;        (seq-command-upcase-backward-word)
-;;        (seq-command-upcase-backward-word)
-;;        (buffer-string)
-;;        )
-;;      "AAA-BBB-CCC")
-;;     )
-;;   )
+;; (macroexpand '(define-seq-command foo beginning-of-line beginning-of-buffer))
 
-;; (cort-deftest-generate seq-command-test :=
-;;   '(((seq-command-test 'seq-command-home) t))
-;;   )
-
-;; (macroexpand '(seq-command-define-command foo beginning-of-line beginning-of-buffer))
-
-;; (macroexpand '(seq-command-define-cursor-command beginning-of-line))
+;; (macroexpand '(define-seq-command-for-cursor beginning-of-line))
 
 (provide 'seq-command-test)
 ;;; seq-command-test.el ends here
