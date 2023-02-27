@@ -1,4 +1,4 @@
-;;; seq-command.el --- Many commands into one command -*- lexical-binding: t; -*-
+;;; sequential-command-config.el --- Examples of sequential-command.el -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009  rubikitch
 
@@ -30,9 +30,9 @@
 
 ;;; Code:
 
-(require 'seq-command-config)
+(require 'seq-cmd-config)
 
-(defalias 'sequential-command-setup-keys 'seq-command-setup-keys)
+(defalias 'sequential-command-setup-keys 'seq-cmd-setup-keys)
 
 (provide 'sequential-command-config)
 ;;; sequential-command-config.el ends here

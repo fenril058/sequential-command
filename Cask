@@ -1,7 +1,7 @@
 (source gnu)
 (source melpa)
 
-(package-file "seq-command.el")
+(package-file "seq-cmd.el")
 
 (development
     (depends-on "cort"))

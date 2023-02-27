@@ -1,6 +1,6 @@
 all:
 
-TESTFILE := seq-command-test.el
+TESTFILE := seq-cmd-test.el
 
 EMACS    ?= emacs
 ELS      := $(shell cask files)

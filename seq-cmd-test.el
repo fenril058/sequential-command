@@ -1,4 +1,4 @@
-;;; seq-command-test.el --- test code of seq-command.el  -*- lexical-binding: t; -*-
+;;; seq-cmd-test.el --- test code of seq-cmd.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022  ril
 
@@ -22,16 +22,16 @@
 
 ;;; Commentary:
 
-;; Test code for `seq-command.el'
+;; Test code for `seq-cmd.el'
 
 ;;; Code:
 
-(require 'seq-command)
-(require 'seq-command-config)
-(require 'seq-command-demo)
+(require 'seq-cmd)
+(require 'seq-cmd-config)
+(require 'seq-cmd-demo)
 (require 'cort)
 
-(defun seq-command-test-insert (string)
+(defun seq-cmd-test-insert (string)
   (interactive)
   (insert string))
 
@@ -39,8 +39,8 @@
 ;; The macro `with-temp-buffer' does not work with key input,
 ;; because after key input the current buffer becomes *scratch*.
 ;; Therefore, *scratch* buffer is now used.
-(defun seq-command-test-string-operations (string command)
-  "Test function for `seq-command.el'.
+(defun seq-cmd-test-string-operations (string command)
+  "Test function for `seq-cmd.el'.
 Delete the current buffer, insert STRING and execute COMMAND,
 and the return the whole string of the buffer."
   (delete-region (point-min) (point-max))
@@ -48,8 +48,8 @@ and the return the whole string of the buffer."
   (command-execute command)
   (buffer-string))
 
-(defun seq-command-test-cursor-operations (string command)
-  "Test function for `seq-command.el'.
+(defun seq-cmd-test-cursor-operations (string command)
+  "Test function for `seq-cmd.el'.
 Delete the current buffer, insert STRING and execute COMMAND,
 and the return the cursor position."
   (delete-region (point-min) (point-max))
@@ -57,19 +57,19 @@ and the return the cursor position."
   (command-execute command)
   (point))
 
-;; (message (format "%s" seq-command-start-position))
-;; (message (format "%s" seq-command-store-count))
-;; (message (format "%s" seq-command-skip-count))
+;; (message (format "%s" seq-cmd-start-position))
+;; (message (format "%s" seq-cmd-store-count))
+;; (message (format "%s" seq-cmd-skip-count))
 
 ;;; Creat the command of pushing keys.
 ;; `seq-demo.el'
-(seq-command-demo)
+(seq-cmd-demo)
 (fset 'test-CxCz "\^x\^z")
 (fset 'test-CxCzCxCz "\^x\^z\^x\^z")
 (fset 'test-CxCzCxCzCxCz "\^x\^z\^x\^z\^x\^z")
-;; `seq-command-config.el'
-(setq seq-command-home-prefer-back-to-indentation nil) ; set key bindings of original `sequentail-command-config.el'
-(seq-command-setup-keys)
+;; `seq-cmd-config.el'
+(setq seq-cmd-home-prefer-back-to-indentation nil) ; set key bindings of original `sequentail-command-config.el'
+(seq-cmd-setup-keys)
 (fset 'test-Ca "\^a")
 (fset 'test-CaCa "\^a\^a")
 (fset 'test-CaCaCa "\^a\^a\^a")
@@ -84,39 +84,39 @@ and the return the cursor position."
 (fset 'test-MuMuMu "\^[u\^[u\^[u")
 
 ;;; test
-(cort-deftest-generate seq-command-count-test :=
+(cort-deftest-generate seq-cmd-count-test :=
   '(((with-temp-buffer
        (command-execute 'test-CxCz)
-       seq-command-store-count)
+       seq-cmd-store-count)
      0)
     ((with-temp-buffer
        (command-execute 'test-CxCzCxCz)
-       seq-command-store-count)
+       seq-cmd-store-count)
      1)
     ((with-temp-buffer
        (command-execute 'test-CxCzCxCzCxCz)
-       seq-command-store-count)
+       seq-cmd-store-count)
      2)
     ))
 
-(cort-deftest-generate seq-command-config-test/string :string=
+(cort-deftest-generate seq-cmd-config-test/string :string=
   '(
-    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-Mc)
+    ((seq-cmd-test-string-operations "aaa-bbb-ccc-ddd" 'test-Mc)
      "aaa-bbb-ccc-Ddd")
-    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-McMc)
+    ((seq-cmd-test-string-operations "aaa-bbb-ccc-ddd" 'test-McMc)
      "aaa-bbb-Ccc-Ddd")
-    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-McMcMc)
+    ((seq-cmd-test-string-operations "aaa-bbb-ccc-ddd" 'test-McMcMc)
      "aaa-Bbb-Ccc-Ddd")
-    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-Mu)
+    ((seq-cmd-test-string-operations "aaa-bbb-ccc-ddd" 'test-Mu)
      "aaa-bbb-ccc-DDD")
-    ((seq-command-test-string-operations "aaa-bbb-ccc-ddd" 'test-MuMu)
+    ((seq-cmd-test-string-operations "aaa-bbb-ccc-ddd" 'test-MuMu)
      "aaa-bbb-CCC-DDD")
-    ((seq-command-test-string-operations "aa-bb" 'test-MuMuMu)
+    ((seq-cmd-test-string-operations "aa-bb" 'test-MuMuMu)
      "AA-BB")
     ))
 
 
-(cort-deftest-generate seq-command-test/position :=
+(cort-deftest-generate seq-cmd-test/position :=
   '(((progn
        (delete-region (point-min) (point-max))
        (insert "aaa
@@ -124,13 +124,13 @@ bbb")
        (point)
        )
      8)
-    ((seq-command-test-cursor-operations "aaa
+    ((seq-cmd-test-cursor-operations "aaa
 bbb" 'test-Ca)
      5)
-    ((seq-command-test-cursor-operations "aaa
+    ((seq-cmd-test-cursor-operations "aaa
 bbb" 'test-CaCa)
      1)
-    ((seq-command-test-cursor-operations "aaa
+    ((seq-cmd-test-cursor-operations "aaa
 bbb" 'test-CaCaCa)
      8)
     ((progn
@@ -145,9 +145,9 @@ bbb")
     )
   )
 
-;; (macroexpand '(define-seq-command foo beginning-of-line beginning-of-buffer))
+;; (macroexpand '(define-seq-cmd foo beginning-of-line beginning-of-buffer))
 
-;; (macroexpand '(define-seq-command-for-cursor beginning-of-line))
+;; (macroexpand '(define-seq-cmd-for-cursor beginning-of-line))
 
-(provide 'seq-command-test)
-;;; seq-command-test.el ends here
+(provide 'seq-cmd-test)
+;;; seq-cmd-test.el ends here

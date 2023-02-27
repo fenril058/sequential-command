@@ -30,9 +30,9 @@
 
 ;;; Code:
 
-(require 'seq-command)
+(require 'seq-cmd)
 
-(defalias 'define-sequenial-command 'define-seq-command)
+(defalias 'define-sequenial-command 'define-seq-cmd)
 
 (provide 'sequential-command)
 ;;; sequential-command.el ends here

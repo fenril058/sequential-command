@@ -1,4 +1,4 @@
-;;; seq-command-demo.el --- demo code of seq-command.el  -*- lexical-binding: t; -*-
+;;; seq-cmd-demo.el --- demo code of seq-cmd.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022  ril
 
@@ -22,24 +22,24 @@
 
 ;;; Commentary:
 
-;; This is the demonstration of `seq-command.el'
-;; Execute M-x seq-command-demo. And press C-x C-z many times.
+;; This is the demonstration of `seq-cmd.el'
+;; Execute M-x seq-cmd-demo. And press C-x C-z many times.
 
 ;;; Code:
 
-(require 'seq-command)
-(defconst seq-command-demo-version "0.0.1")
+(require 'seq-cmd)
+(defconst seq-cmd-demo-version "0.0.1")
 
-(defun seq-command-demo ()
-  "Demo function of seq-command."
+(defun seq-cmd-demo ()
+  "Demo function of seq-cmd."
   (interactive)
-  (global-set-key "\C-x\C-z" 'seq-command-count-test)
+  (global-set-key "\C-x\C-z" 'seq-cmd-count-test)
   (message "Press C-x C-z repeatedly"))
 
-(defun seq-command-count-test ()
-  "Test function of seq-command-count."
+(defun seq-cmd-count-test ()
+  "Test function of seq-cmd-count."
   (interactive)
-  (message "seq-command-count: %d" (seq-command-count)))
+  (message "seq-cmd-count: %d" (seq-cmd-count)))
 
-(provide 'seq-command-demo)
-;;; seq-command-demo.el ends here
+(provide 'seq-cmd-demo)
+;;; seq-cmd-demo.el ends here
