@@ -140,7 +140,9 @@ If you use `org-mode', rebind `C-a' and `C-e'."
   (if seq-cmd-home-prefer-back-to-indentation
       (global-set-key "\C-a" 'seq-cmd-home-another)
     (global-set-key "\C-a" 'seq-cmd-home))
-  (global-set-key "\C-e" 'seq-cmd-end)
+  (if seq-cmd-end-prefer-end-of-code
+        (global-set-key "\C-e" 'seq-cmd-end-anotehr)
+      (global-set-key "\C-e" 'seq-cmd-end))
   (global-set-key "\M-u" 'seq-cmd-upcase-backward-word)
   (global-set-key "\M-c" 'seq-cmd-capitalize-backward-word)
   (global-set-key "\M-l" 'seq-cmd-downcase-backward-word)
