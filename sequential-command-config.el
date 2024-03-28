@@ -1,11 +1,13 @@
 ;;; sequential-command-config.el --- Examples of sequential-command.el -*- lexical-binding: t; -*-
-;; $Id: sequential-command-config.el,v 1.3 2009/03/22 09:09:58 rubikitch Exp $
 
 ;; Copyright (C) 2009  rubikitch
 
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
+;; Maintainer: ril <fenril.nh@gmail.com>
 ;; Keywords: extensions, convenience
-;; URL: http://www.emacswiki.org/cgi-bin/wiki/download/sequential-command-config.el
+;; Version: 1.4.0
+;; URL: https://github.com/fenril058/sequential-command
+;; Package-Requires: ((emacs "24.4"))
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,7 +33,7 @@
 ;; Below are complete command list:
 ;;
 ;;  `sequential-command-setup-keys'
-;;    Rebind C-a, C-e, M-u, M-c, and M-l to seq-* commands.
+;;    Rebind C-a, C-e, M-u, M-c, and M-l to seq-cmd* commands.
 ;;
 ;;; Customizable Options:
 ;;
@@ -40,59 +42,119 @@
 
 ;;; History:
 
-;; $Log: sequential-command-config.el,v $
+;; Revision 1.4.0  2024/03/29 ril
+;; * Rewrite `reqruire' to `with-eval-after-load' `org.el'
+;;   to prevent from slowing down of the initial process of Emacs.
+;; * Now there seems no need to require Emacs 25.1 or more, but using
+;;   `with-eval-after-load' requires Emacs 24.4 or more.
+;; * New variables `seq-cmd-home-prefer-back-to-indentation' and
+;;   `seq-cmd-end-prefer-end-of-code' are added.
+;;   These change the behavior of the `sequential-command-setup-keys'.
+;;   Read the doc strings of it to see the details.
+;;
 ;; Revision 1.3  2009/03/22 09:09:58  rubikitch
-;; New command: `sequential-command-setup-keys'
+;; * New command: `sequential-command-setup-keys'
 ;;
 ;; Revision 1.2  2009/02/17 12:56:26  rubikitch
-;; fixed typo
+;; * fixed typo
 ;;
 ;; Revision 1.1  2009/02/17 03:13:47  rubikitch
-;; Initial revision
+;; * Initial revision
 ;;
 
 ;;; Code:
 
-(defvar sequential-command-config-version "1.4")
 (require 'sequential-command)
-(declare 'org-mode-map)
 
-(define-sequential-command seq-home
-  beginning-of-line beginning-of-buffer seq-return)
-(define-sequential-command seq-end
-  end-of-line end-of-buffer seq-return)
+(defconst seq-cmd-config-version "1.4.0")
 
-(defun seq-upcase-backward-word ()
-  (interactive)
-  (upcase-word (- (1+ (seq-count*)))))
-(defun seq-capitalize-backward-word ()
-  (interactive)
-  (capitalize-word (- (1+ (seq-count*)))))
-(defun seq-downcase-backward-word ()
-  (interactive)
-  (downcase-word (- (1+ (seq-count*)))))
+(defcustom seq-cmd-home-prefer-back-to-indentation nil
+  "If non-nil `seq-cmd-setup-keys' bind `C-a' to `seq-cmd-home-another'.
+It calls `back-to-indentation' firt rather than
+`beginning-of-line', which is originaly bind to `C-a'."
+  :type 'boolean
+  :group 'sequential-command)
 
-(when (require 'org nil t)
-  (define-sequential-command org-seq-home
-    org-beginning-of-line beginning-of-buffer seq-return)
-  (define-sequential-command org-seq-end
-    org-end-of-line end-of-buffer seq-return))
+(defcustom seq-cmd-end-prefer-end-of-code nil
+  "If non-nil `seq-cmd-setup-keys' bind `C-e' to `seq-cmd-end-another'.
+It calls `seq-cmd-end-of-code' firt rather than
+`end-of-line', which is originaly bind to `C-e'."
+  :type 'boolean
+  :group 'sequential-command)
 
-(defun sequential-command-setup-keys ()
-  "Rebind C-a, C-e, M-u, M-c, and M-l to seq-* commands.
-If you use `org-mode', rebind C-a and C-e."
+(define-sequential-command seq-cmd-home
+  beginning-of-line
+  beginning-of-buffer
+  seq-cmd-return)
+
+(define-sequential-command seq-cmd-home-another
+  back-to-indentation
+  beginning-of-line
+  beginning-of-buffer
+  seq-cmd-return)
+
+(define-sequential-command seq-cmd-end
+  end-of-line
+  end-of-buffer
+  seq-cmd-return)
+
+(defun seq-cmd-end-of-code ()
+  "Move to end of code if cursor is not in comment region.
+Comments are recognized in any mode that sets syntax-ppss properly.
+The idea was originally from
+<https://www.emacswiki.org/emacs/BackToIndentationOrBeginning>."
   (interactive)
-  (global-set-key "\C-a" 'seq-home)
-  (global-set-key "\C-e" 'seq-end)
-  (global-set-key "\M-u" 'seq-upcase-backward-word)
-  (global-set-key "\M-c" 'seq-capitalize-backward-word)
-  (global-set-key "\M-l" 'seq-downcase-backward-word)
-  (when (require 'org nil t)
-    (define-key org-mode-map "\C-a" 'org-seq-home)
-    (define-key org-mode-map "\C-e" 'org-seq-end)))
+  (let ((in-comment-p (nth 4 (syntax-ppss))))
+    (end-of-line)
+    (unless in-comment-p
+      (while (nth 4 (syntax-ppss))
+        (backward-char))
+      (skip-chars-backward " \t"))))
+
+(define-sequential-command seq-cmd-end-anotehr
+  seq-cmd-end-of-code
+  end-of-line
+  end-of-buffer
+  seq-cmd-return)
+
+(defun seq-cmd-upcase-backward-word ()
+  "Upcase the word just before the cursor."
+  (interactive)
+  (upcase-word (- (1+ (seq-cmd-count)))))
+
+(defun seq-cmd-capitalize-backward-word ()
+  "Capitalize the word just before the cursor."
+  (interactive)
+  (capitalize-word (- (1+ (seq-cmd-count)))))
+
+(defun seq-cmd-downcase-backward-word ()
+  "Downcase the word just before the cursor."
+  (interactive)
+  (downcase-word (- (1+ (seq-cmd-count)))))
+
+;;;###autoload
+(defun seq-cmd-setup-keys ()
+  "Rebind `C-a', `C-e', `M-u', `M-c', and `M-l' to seq-cmd-* commands.
+If you use `org-mode', rebind `C-a' and `C-e'."
+  (interactive)
+  (if seq-cmd-home-prefer-back-to-indentation
+      (global-set-key "\C-a" 'seq-cmd-home-another)
+    (global-set-key "\C-a" 'seq-cmd-home))
+  (global-set-key "\C-e" 'seq-cmd-end)
+  (global-set-key "\M-u" 'seq-cmd-upcase-backward-word)
+  (global-set-key "\M-c" 'seq-cmd-capitalize-backward-word)
+  (global-set-key "\M-l" 'seq-cmd-downcase-backward-word)
+  (with-eval-after-load 'org
+    (define-sequential-command org-seq-cmd-home
+        org-beginning-of-line beginning-of-buffer seq-cmd-return)
+    (define-sequential-command org-seq-cmd-end
+        org-end-of-line end-of-buffer seq-cmd-return)
+    (define-key org-mode-map "\C-a" 'org-seq-cmd-home)
+    (define-key org-mode-map "\C-e" 'org-seq-cmd-end)))
+
+;;;###autoload
+(defalias 'sequential-command-setup-keys 'seq-cmd-setup-keys)
 
 (provide 'sequential-command-config)
 
-;; How to save (DO NOT REMOVE!!)
-;; (emacswiki-post "sequential-command-config.el")
 ;;; sequential-command-config.el ends here
