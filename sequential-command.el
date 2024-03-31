@@ -5,7 +5,7 @@
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Maintainer: ril <fenril.nh@gmail.com>
 ;; Keywords: convenience, lisp
-;; Version: 1.4.0
+;; Version: 1.5.0
 ;; URL: https://github.com/fenril058/sequential-command
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -47,11 +47,17 @@
 
 ;;; History:
 
-;; Revision 1.4.0 2024/03/29 ril
+
+;; Revision 1.5.0  2024/03/31 ril
+;; * New macfo: `define-seq-cmd-for-cursor'
+;;   The code is mainly from
+;;   <https://github.com/HKey/sequential-command>.
+;;
+;; Revision 1.4.0  2024/03/29 ril
 ;; * Delelte bug report command
 ;; * Delelte demo code
-;; * Change the prefix seq- to seq-cmd- to avoid conflict with
-;;   the package `seq.el'.
+;; * Change the prefix seq- to seq-cmd-
+;;   To avoid conflict with the package `seq.el'.
 ;; * Delete comments
 ;; * Add autoload keyword
 ;; * Add group
@@ -67,14 +73,14 @@
 ;; * New command: `seq-return'.
 ;;
 ;; Revision 1.1  2009/02/17 01:24:04  rubikitch
-;; Initial revision
+;; * Initial revision
 ;;
 
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
 
-(defconst seq-cmd-version "1.4.0")
+(defconst seq-cmd-version "1.5.0")
 
 (defgroup sequential-command nil
   "Many commands into one command."
@@ -82,6 +88,8 @@
   :prefix 'seq-cmd)
 
 (defvar seq-cmd-store-count 0)
+
+(defvar seq-cmd-skip-count 0)
 
 (defvar seq-cmd-start-position nil
   "Stores `point' and `window-start' when sequence of calls of the same
@@ -121,6 +129,37 @@ command was started."
   (interactive)
   (goto-char (car seq-cmd-start-position))
   (set-window-start (selected-window) (cdr seq-cmd-start-position)))
+
+(defun seq-cmd-next ()
+  "Skip a command in a sequence and execut next command."
+  (setq last-command this-command)
+  (cl-incf seq-cmd-skip-count)
+  (call-interactively this-command))
+
+;;;###autoload
+(defmacro define-seq-cmd-for-cursor (source-command &optional comp-form)
+  "Define moving corsor command for seq-cmd.
+This macro define the function of whith the name is
+seq-cmd-SOURCE-COMMAND-.  It executs SOURCE-COMMAND when
+called, and evaluate COMP-FORM.  If COMP-FORM retunrs non-nil value,
+`seq-cmd-next' is called after that.  By default COMP-FORM is
+\(= seq-cmd-old-point seq-cmd-new-point\), which retunrs t
+if the cursor position does not move after executing
+SOURCE-COMMAND.  In COMP-FORM, `seq-cmd-old-point'
+interpreted as the cursor position before SOURCE-COMMAND executed
+and `seq-cmd-new-point' interpreted as the cursorposition
+after SOURCE-COMMAND executed."
+  (declare (indent function))
+  (setq comp-form (or comp-form
+                      '(= seq-cmd-old-point seq-cmd-new-point)))
+  `(defun ,(intern (concat "seq-cmd-" (symbol-name source-command))) ()
+     (interactive)
+     (let ((seq-cmd-old-point (point)))
+       (call-interactively ',source-command)
+       (let ((seq-cmd-new-point (point)))
+         (when ,comp-form
+           (goto-char seq-cmd-old-point)
+           (seq-cmd-next))))))
 
 (provide 'sequential-command)
 
