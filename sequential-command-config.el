@@ -5,7 +5,7 @@
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Maintainer: ril <fenril.nh@gmail.com>
 ;; Keywords: extensions, convenience
-;; Version: 1.4.0
+;; Version: 1.5.0
 ;; URL: https://github.com/fenril058/sequential-command
 ;; Package-Requires: ((emacs "24.4"))
 
@@ -42,6 +42,11 @@
 
 ;;; History:
 
+;; Revision 1.5.0  2024/03/31 ril
+;; * Redefine `seq-cmd-home-another', `seq-cmd-end-another'
+;;   by using `define-seq-cmd-for-cursor'.
+;; * Redefine `seq-cmd-end-of-code'
+;;
 ;; Revision 1.4.0  2024/03/29 ril
 ;; * Rewrite `reqruire' to `with-eval-after-load' `org.el'
 ;;   to prevent from slowing down of the initial process of Emacs.
@@ -66,7 +71,7 @@
 
 (require 'sequential-command)
 
-(defconst seq-cmd-config-version "1.4.0")
+(defconst seq-cmd-config-version "1.5.0")
 
 (defcustom seq-cmd-home-prefer-back-to-indentation nil
   "If non-nil `seq-cmd-setup-keys' bind `C-a' to `seq-cmd-home-another'.
@@ -82,14 +87,21 @@ It calls `seq-cmd-end-of-code' firt rather than
   :type 'boolean
   :group 'sequential-command)
 
+(define-seq-cmd-for-cursor back-to-indentation
+  (<= seq-cmd-old-point seq-cmd-new-point))
+(define-seq-cmd-for-cursor beginning-of-line)
+(define-seq-cmd-for-cursor beginning-of-buffer)
+(define-seq-cmd-for-cursor end-of-line)
+(define-seq-cmd-for-cursor end-of-buffer)
+
 (define-sequential-command seq-cmd-home
   beginning-of-line
   beginning-of-buffer
   seq-cmd-return)
 
 (define-sequential-command seq-cmd-home-another
-  back-to-indentation
-  beginning-of-line
+  seq-cmd-back-to-indentation
+  seq-cmd-beginning-of-line
   beginning-of-buffer
   seq-cmd-return)
 
@@ -104,16 +116,21 @@ Comments are recognized in any mode that sets syntax-ppss properly.
 The idea was originally from
 <https://www.emacswiki.org/emacs/BackToIndentationOrBeginning>."
   (interactive)
-  (let ((in-comment-p (nth 4 (syntax-ppss))))
-    (end-of-line)
-    (unless in-comment-p
-      (while (nth 4 (syntax-ppss))
-        (backward-char))
-      (skip-chars-backward " \t"))))
+  (let ((seq-cmd-old-point (point)))
+    (let ((in-comment-p (nth 4 (syntax-ppss))))
+      (end-of-line)
+      (unless in-comment-p
+        (while (nth 4 (syntax-ppss))
+          (backward-char))
+        (skip-chars-backward " \t")))
+    (let ((seq-cmd-new-point (point)))
+      (when (= seq-cmd-old-point seq-cmd-new-point)
+        (goto-char seq-cmd-old-point)
+        (seq-cmd-next)))))
 
 (define-sequential-command seq-cmd-end-anotehr
   seq-cmd-end-of-code
-  end-of-line
+  seq-cmd-end-of-line
   end-of-buffer
   seq-cmd-return)
 
