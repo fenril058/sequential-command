@@ -149,6 +149,17 @@ The idea was originally from
   (interactive)
   (downcase-word (- (1+ (seq-cmd-count)))))
 
+(with-eval-after-load 'org
+  (define-sequential-command org-seq-cmd-home
+    seq-cmd-back-to-indentation
+    org-beginning-of-line
+    beginning-of-buffer
+    seq-cmd-return)
+  (define-sequential-command org-seq-cmd-end
+    org-end-of-line
+    end-of-buffer
+    seq-cmd-return))
+
 ;;;###autoload
 (defun seq-cmd-setup-keys ()
   "Rebind `C-a', `C-e', `M-u', `M-c', and `M-l' to seq-cmd-* commands.
@@ -158,16 +169,12 @@ If you use `org-mode', rebind `C-a' and `C-e'."
       (global-set-key "\C-a" 'seq-cmd-home-another)
     (global-set-key "\C-a" 'seq-cmd-home))
   (if seq-cmd-end-prefer-end-of-code
-        (global-set-key "\C-e" 'seq-cmd-end-anotehr)
-      (global-set-key "\C-e" 'seq-cmd-end))
+      (global-set-key "\C-e" 'seq-cmd-end-anotehr)
+    (global-set-key "\C-e" 'seq-cmd-end))
   (global-set-key "\M-u" 'seq-cmd-upcase-backward-word)
   (global-set-key "\M-c" 'seq-cmd-capitalize-backward-word)
   (global-set-key "\M-l" 'seq-cmd-downcase-backward-word)
   (with-eval-after-load 'org
-    (define-sequential-command org-seq-cmd-home
-        org-beginning-of-line beginning-of-buffer seq-cmd-return)
-    (define-sequential-command org-seq-cmd-end
-        org-end-of-line end-of-buffer seq-cmd-return)
     (define-key org-mode-map "\C-a" 'org-seq-cmd-home)
     (define-key org-mode-map "\C-e" 'org-seq-cmd-end)))
 
